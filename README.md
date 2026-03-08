@@ -55,30 +55,29 @@ WeatherMan is a full-stack web application designed to move beyond raw data. Ins
 ### Installation
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/YOUR_USERNAME/weatherman-ai.git](https://github.com/YOUR_USERNAME/weatherman-ai.git)
+   git clone https://github.com/MatsunoAki/Weather-man.git
    cd weatherman-ai
 
 2. **Setup Backend**
+    ```bash
     cd server
     npm install
     # Create a .env file based on the provided .env.example
     npm run dev
 
 3. **Frontend**
+    ```bash
     cd client
     npm install
     npm run dev
 
 📈 Future Roadmap
-[ ] Email/SMS Integration: Sending briefings directly to the user's phone.
 
-[ ] Historical Analytics: Visualizing weather trends for the user's home city.
-
-[ ] Reverse Geocoding: Automatically identifying city names from GPS coordinates.
+    [ ] Email/SMS Integration: Sending briefings directly to the user's phone.
+    [ ] Historical Analytics: Visualizing weather trends for the user's home city.
+    [ ] Reverse Geocoding: Automatically identifying city names from GPS coordinates.
 
 👤 Author
-Johnlex Sambile
+Johnlex Sambile _Computer Science Graduate_
 
-Computer Science Graduate
-
-LinkedIn | Portfolio
+[LinkedIn](https://www.linkedin.com/in/johnlex-sambile) | Portfolio
