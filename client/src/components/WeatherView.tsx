@@ -1,36 +1,40 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Cloud, Thermometer, Droplets, Wind, Search } from 'lucide-react';
-import axios from 'axios';
+import API from '../api/axiosConfig';
 
 interface WeatherData {
     city: string;
     temperature: number;
     conditions: string;
 }
+interface WeatherViewProps {
+    advice: string;
+    adviceLoading: boolean;
+    homeCity: string;
+}
 
-const WeatherView = () => {
+const WeatherView = ( {advice, adviceLoading, homeCity} : WeatherViewProps) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchCity, setSearchCity] = useState("");
-    const [advice, setAdvice] = useState("");
-    const [adviceLoading, setAdviceLoading] = useState(false);
+
 
     const queryParams = new URLSearchParams(location.search);
-    const currentCity = queryParams.get('city') || 'Antipolo';
+    const currentCity = queryParams.get('city') || homeCity;
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
         const fetchWeatherData = async () => {
+            if (!currentCity || currentCity === "undefined") return;
+
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:5000/api/weather/${currentCity}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await API.get(`/weather/${currentCity}`);
                 setWeatherData(response.data);
             } catch (error) {
                 console.error('Error fetching weather data:', error);
@@ -42,30 +46,11 @@ const WeatherView = () => {
         fetchWeatherData();
     }, [currentCity]);
 
-    useEffect(() => {
-        const fetchAdvice = async () => {
-            setAdviceLoading(true);
-            try {
-                const token = localStorage.getItem('token');
-                if (!token) return;
-                const response = await axios.get(`http://localhost:5000/api/weather/${currentCity}/advice`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setAdvice(response.data.advice);
-            } catch (error) {
-                console.error('Error fetching AI advice:', error);
-            } finally {
-                setAdviceLoading(false);
-            }
-        };
-
-        if (currentCity) fetchAdvice();
-    }, [currentCity]);
 
     const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (searchCity.trim() === "") return;
-        navigate(`/dashboard?city=${encodeURIComponent(searchCity)}`);
+        navigate(`/dashboard/home?city=${encodeURIComponent(searchCity)}`);
         setSearchCity("");
     };
 
@@ -119,7 +104,7 @@ const WeatherView = () => {
                 )}
 
                 <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-3">
+                    <div className="absolute top-0 right-0 p-4">
                         <div className="flex h-2 w-2">
                             <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${adviceLoading ? 'bg-blue-400' : 'bg-emerald-400'} opacity-75`}></span>
                             <span className={`relative inline-flex rounded-full h-2 w-2 ${adviceLoading ? 'bg-blue-500' : 'bg-emerald-500'}`}></span>
