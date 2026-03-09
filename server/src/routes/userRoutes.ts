@@ -32,4 +32,15 @@ router.put('/update-preferences', authMiddleware, async (req: AuthenticatedReque
         res.status(500).json({ message: "Error updating user preferences" });
     }
 });
+
+router.get('/profile', authMiddleware, async (req: AuthenticatedRequest, res) => {
+    try {
+        const user = await Users.findByPk(req.user?.userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        const { username, homeCity } = user;
+        res.json({ username, homeCity });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching user profile" });
+    }
+});
 export default router;
