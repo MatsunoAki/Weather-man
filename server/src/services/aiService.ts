@@ -43,7 +43,6 @@ export const getAiWeatherAdvice = async (temp: number, city: string, timeframe: 
         const isQuotaError = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('quota');
 
         if (isQuotaError) {
-            console.warn("Gemini Quota Exceeded. Switching to Backup (Groq)...");
             return await fetchGroqAdvice(prompt);
         }
 
