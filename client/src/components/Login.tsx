@@ -16,7 +16,7 @@ const Login = () => {
     hasCheckedAuth.current = true;
     const token = localStorage.getItem('token');
     if (token) {
-      navigate('/dashboard', { replace: true });
+      navigate('/dashboard/home', { replace: true });
     }
     }, [navigate]);
 
@@ -37,7 +37,7 @@ const Login = () => {
       // Save the JWT Token to LocalStorage
       localStorage.setItem('token', response.data.token);
       alert("Login Successful!");
-      window.location.href = '/dashboard';
+      window.location.href = '/dashboard/home';
 
       //for dashboard later
 
