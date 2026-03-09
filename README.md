@@ -59,22 +59,23 @@ WeatherMan is a full-stack web application designed to move beyond raw data. Ins
    cd weatherman-ai
 
 2. **Setup Backend**
+    ```bash
     cd server
     npm install
     # Create a .env file based on the provided .env.example
     npm run dev
 
 3. **Frontend**
+    ```bash
     cd client
     npm install
     npm run dev
 
 📈 Future Roadmap
-[ ] Email/SMS Integration: Sending briefings directly to the user's phone.
 
-[ ] Historical Analytics: Visualizing weather trends for the user's home city.
-
-[ ] Reverse Geocoding: Automatically identifying city names from GPS coordinates.
+    [ ] Email/SMS Integration: Sending briefings directly to the user's phone.
+    [ ] Historical Analytics: Visualizing weather trends for the user's home city.
+    [ ] Reverse Geocoding: Automatically identifying city names from GPS coordinates.
 
 👤 Author
 Johnlex Sambile
