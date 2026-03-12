@@ -70,7 +70,6 @@ const Settings = () => {
                 const res = await fetch(`https://photon.komoot.io/reverse?lon=${longitude}&lat=${latitude}`);
                 const data = await res.json();
                 const p = data.features[0].properties;
-                // Priority: City -> District -> Name
                 const city = p.city || p.district || p.name || "Unknown Location";
                 
                 setPrefs(prev => ({ ...prev, homeCity: city, useGPS: true }));
@@ -98,21 +97,23 @@ const Settings = () => {
     };
 
     return (
-        <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-3xl font-bold mb-2 text-white">App Settings</h2>
-            <p className="text-slate-400 mb-8">Personalize your WeatherMan experience.</p>
+        <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <header className="mb-10">
+                <h2 className="text-4xl font-bold text-white tracking-tight">App Settings</h2>
+                <p className="text-slate-400 mt-2">Personalize your WeatherMan experience.</p>
+            </header>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
                 
                 {/* --- GPS TOGGLE SECTION --- */}
-                <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl flex items-center justify-between shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-2xl ${prefs.useGPS ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-800 text-slate-500'}`}>
+                <div className="bg-white/5 border border-white/10 p-8 rounded-[2.5rem] flex items-center justify-between shadow-2xl backdrop-blur-sm group">
+                    <div className="flex items-center gap-5">
+                        <div className={`p-4 rounded-2xl transition-all duration-500 ${prefs.useGPS ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)]' : 'bg-white/5 text-slate-500'}`}>
                             <Navigation size={24} />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-white">Automatic Location</h3>
-                            <p className="text-xs text-slate-500 uppercase tracking-tighter">Meteored Style detection</p>
+                            <h3 className="font-bold text-white text-lg">Automatic Location</h3>
+                            <p className="text-xs text-slate-500 uppercase tracking-widest mt-1">Smart GPS Detection</p>
                         </div>
                     </div>
                     <button 
@@ -121,40 +122,35 @@ const Settings = () => {
                             setPrefs(p => ({ ...p, useGPS: newValue }));
                             if (newValue) handleGPSFetch();
                         }}
-                        className={`w-12 h-6 rounded-full transition-all relative ${prefs.useGPS ? 'bg-blue-600' : 'bg-slate-700'}`}
+                        className={`w-14 h-7 rounded-full transition-all duration-300 relative ${prefs.useGPS ? 'bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'bg-white/10'}`}
                     >
-                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${prefs.useGPS ? 'left-7' : 'left-1'}`} />
+                        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 shadow-md ${prefs.useGPS ? 'left-8' : 'left-1'}`} />
                     </button>
                 </div>
 
                 {/* --- LOCATION SEARCH SECTION --- */}
-                <div className={`bg-slate-900/50 border border-slate-800 p-6 rounded-3xl transition-all ${prefs.useGPS ? 'opacity-40 grayscale pointer-events-none' : 'opacity-100'}`}>
-                    <h3 className="text-blue-400 font-semibold mb-4 flex items-center gap-2">
-                        <MapPin size={18} /> Home City
+                <div className={`relative z-30 bg-white/5 border border-white/10 p-8 rounded-[2.5rem] transition-all duration-500 shadow-2xl backdrop-blur-sm ${prefs.useGPS ? 'opacity-30 grayscale pointer-events-none scale-[0.98]' : 'opacity-100'}`}>
+                    <h3 className="text-blue-400 font-bold mb-6 flex items-center gap-3 tracking-tight">
+                        <MapPin size={20} /> Home City
                     </h3>
-                    <div className="relative">
+                    <div className="relative group">
                         <input 
                             type="text" 
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="w-full bg-slate-800 border border-slate-700 p-4 pl-12 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white"
+                            className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white/10 transition-all text-white placeholder:text-slate-600"
                             placeholder="Search city, province, or country..."
                         />
-                        <Search className="absolute left-4 top-4.5 text-slate-500" size={20} />
-                        {isSearching && <Loader2 className="absolute right-4 top-4.5 animate-spin text-blue-500" size={20} />}
+                        <Search className="absolute left-4 top-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={20} />
+                        {isSearching && <Loader2 className="absolute right-4 top-4 animate-spin text-blue-500" size={20} />}
                         
                         {/* --- SUGGESTIONS DROPDOWN --- */}
                         {suggestions.length > 0 && (
-                            <ul className="absolute z-50 w-full mt-2 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden ring-1 ring-white/10">
+                            <ul className="absolute w-full mt-3 bg-[#0A0C10] border border-white/10 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden ring-1 ring-white/5">
                                 {suggestions.map((s, idx) => {
                                     const p = s.properties;
-                                    // Identify main municipality name
                                     const mainName = p.city || p.district || p.locality || p.name;
-                                    
-                                    // Build hierarchy: Province/State, Country
-                                    const subLabelParts = [p.state, p.country].filter(val => 
-                                        val && val !== mainName
-                                    );
+                                    const subLabelParts = [p.state, p.country].filter(val => val && val !== mainName);
                                     const subLabel = subLabelParts.join(", ");
 
                                     return (
@@ -165,13 +161,13 @@ const Settings = () => {
                                                 setPrefs(prev => ({ ...prev, homeCity: mainName }));
                                                 setSuggestions([]);
                                             }}
-                                            className="p-4 hover:bg-blue-600/20 cursor-pointer flex flex-col border-b border-slate-800 last:border-none group"
+                                            className="p-5 hover:bg-blue-600/10 cursor-pointer flex flex-col border-b border-white/5 last:border-none group transition-all"
                                         >
-                                            <span className="text-white font-medium group-hover:text-blue-400 transition-colors">
+                                            <span className="text-white font-semibold group-hover:text-blue-400 transition-colors">
                                                 {mainName}
                                             </span>
                                             {subLabel && (
-                                                <span className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">
+                                                <span className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mt-1">
                                                     {subLabel}
                                                 </span>
                                             )}
@@ -183,44 +179,47 @@ const Settings = () => {
                     </div>
                 </div>
 
-                {/* Notifications Section */}
-                <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl">
-                    <h3 className="text-blue-400 font-semibold mb-4 flex items-center gap-2 text-white">
-                        <Bell size={18} /> Notifications
+                {/* --- NOTIFICATIONS SECTION --- */}
+                <div className="relative z-10 bg-white/5 border border-white/10 p-8 rounded-[2.5rem] shadow-2xl backdrop-blur-sm">
+                    <h3 className="text-blue-400 font-bold mb-8 flex items-center gap-3 text-white tracking-tight">
+                        <Bell size={20} /> Notifications
                     </h3>
                     <div className="space-y-4">
                         {[
-                            { id: 'morningAlert', label: 'Morning Briefing', desc: 'Advice at 7:00 AM' },
-                            { id: 'eveningAlert', label: 'Evening Forecast', desc: 'Advice at 8:00 PM' },
-                            { id: 'alertOnSuddenChange', label: 'Sudden Changes', desc: 'Immediate rain alerts', icon: <Zap size={12} className="text-amber-400" /> }
+                            { id: 'morningAlert', label: 'Morning Briefing', desc: 'Personalized advice at 7:00 AM' },
+                            { id: 'eveningAlert', label: 'Evening Forecast', desc: 'Nightly recap at 8:00 PM' },
+                            { id: 'alertOnSuddenChange', label: 'Sudden Changes', desc: 'Immediate weather shifts', icon: <Zap size={14} className="text-amber-400 fill-amber-400/20" /> }
                         ].map((item) => (
-                            <div key={item.id} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-2xl hover:bg-slate-800/50 transition-colors">
+                            <div key={item.id} className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.06] transition-all duration-300">
                                 <div>
-                                    <p className="font-medium flex items-center gap-2 text-white text-sm">{item.label} {item.icon}</p>
-                                    <p className="text-xs text-slate-500">{item.desc}</p>
+                                    <p className="font-bold flex items-center gap-2 text-white text-sm tracking-wide">
+                                        {item.label} {item.icon}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 uppercase tracking-wider mt-1">{item.desc}</p>
                                 </div>
                                 <button 
                                     onClick={() => setPrefs({...prefs, [item.id as keyof typeof prefs]: !prefs[item.id as keyof typeof prefs]})}
-                                    className={`w-12 h-6 rounded-full transition-all relative ${prefs[item.id as keyof typeof prefs] ? 'bg-blue-600' : 'bg-slate-700'}`}
+                                    className={`w-12 h-6 rounded-full transition-all duration-300 relative ${prefs[item.id as keyof typeof prefs] ? 'bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'bg-white/10'}`}
                                 >
-                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${prefs[item.id as keyof typeof prefs] ? 'left-7' : 'left-1'}`} />
+                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${prefs[item.id as keyof typeof prefs] ? 'left-7' : 'left-1'}`} />
                                 </button>
                             </div>
                         ))}
                     </div>
                 </div>
 
+                {/* --- SAVE BUTTON --- */}
                 <button 
                     onClick={handleSave}
                     disabled={saving}
-                    className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95 text-white"
+                    className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-5 rounded-3xl font-black text-white uppercase tracking-[0.2em] shadow-[0_20px_40px_rgba(37,99,235,0.2)] active:scale-95 transition-all duration-300 flex items-center justify-center gap-3"
                 >
-                    {saving ? 'Processing...' : <><Save size={20} /> Save Changes</>}
+                    {saving ? <Loader2 className="animate-spin" size={24} /> : <><Save size={20} /> Save Changes</>}
                 </button>
 
                 {saveSuccess && (
-                    <p className="text-center text-emerald-400 flex items-center justify-center gap-2 text-sm font-medium animate-in fade-in">
-                        <CheckCircle size={16} /> {saveSuccess}
+                    <p className="text-center text-emerald-400 flex items-center justify-center gap-2 text-sm font-bold tracking-wide animate-in fade-in slide-in-from-top-2">
+                        <CheckCircle size={18} /> {saveSuccess}
                     </p>
                 )}
             </div>
