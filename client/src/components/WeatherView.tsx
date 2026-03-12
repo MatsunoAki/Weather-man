@@ -51,7 +51,7 @@ const WeatherView = ( {advice, adviceLoading, homeCity} : WeatherViewProps) => {
         e.preventDefault();
         if (searchCity.trim() === "") return;
         navigate(`/dashboard/home?city=${encodeURIComponent(searchCity)}`);
-        setSearchCity("");
+        setSearchCity(searchCity);
     };
 
     return (

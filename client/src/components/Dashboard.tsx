@@ -15,18 +15,22 @@ const Dashboard = () => {
     const queryParams = new URLSearchParams(search);
     const currentCity = queryParams.get('city') || userProfile?.homeCity || '';
 
-    useEffect(() => {
-        const fetchUserProfile = async () => {
-            try {
-                const response = await API.get('/user/profile');
-                setUserProfile(response.data);
-            } catch (error) {
-                console.error('Error fetching user profile:', error);
-            }
-        };
+useEffect(() => {
+    const fetchUserProfile = async () => {
+        try {
+            const response = await API.get('/user/profile');
+            setUserProfile(response.data);
+            console.log("Profile updated:", response.data.homeCity);
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+        }
+    };
+
+    // Re-fetch profile every time the user navigates to the home view
+    if (pathname.includes('/home')) {
         fetchUserProfile();
-    }, []);
-                
+    }
+}, [pathname]); 
 
     useEffect(() => {
         const fetchAdvice = async () => {
