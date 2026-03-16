@@ -74,7 +74,7 @@ const Login = () => {
                             <Mail className="absolute left-4 top-4 text-blue-600" size={20} />
                             <input 
                                 type="email" 
-                                placeholder="Loisbecket@gmail.com"
+                                placeholder="example@gmail.com"
                                 className="w-full pl-12 pr-4 py-4 text-slate-900 placeholder-slate-400 outline-none text-base"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
