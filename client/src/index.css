@@ -1,1 +1,47 @@
 @import "tailwindcss";
+/* --- Geoapify Component Wrapper --- */
+.geoapify-autocomplete-wrapper {
+  width: 100%;
+}
+
+/* Customizing Geoapify to match Starry Night Theme */
+.geoapify-autocomplete-input {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 1rem !important; /* This matches your rounded-2xl */
+  color: white !important;
+  padding: 1rem 1rem 1rem 3rem !important; /* Space for the search icon */
+  outline: none !important;
+  font-family: inherit !important;
+  width: 100% !important;
+  transition: all 0.3s ease !important;
+}
+
+.geoapify-autocomplete-input:focus {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important; /* blue-500/50 */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* The dropdown container */
+.geoapify-autocomplete-items {
+  background-color: #0A0C10 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 1rem !important;
+  margin-top: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Individual list items */
+.geoapify-autocomplete-item {
+  color: #94a3b8 !important; /* slate-400 */
+  padding: 12px 16px !important;
+  background-color: transparent !important;
+}
+
+.geoapify-autocomplete-item:hover, 
+.geoapify-autocomplete-item.active {
+  background-color: rgba(37, 99, 235, 0.2) !important; /* blue-600/20 */
+  color: #60a5fa !important; /* blue-400 */
+}
