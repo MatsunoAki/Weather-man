@@ -21,7 +21,6 @@ const WeatherView = ({ advice, adviceLoading, homeCity }: WeatherViewProps) => {
     const location = useLocation();
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [searchCity, setSearchCity] = useState("");
 
     const queryParams = new URLSearchParams(location.search);
     const currentCity = queryParams.get('city') || homeCity;
@@ -46,8 +45,6 @@ const WeatherView = ({ advice, adviceLoading, homeCity }: WeatherViewProps) => {
 
         fetchWeatherData();
     }, [currentCity]);
-
-
 
 
     return (
