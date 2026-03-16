@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Save, MapPin, Bell, Zap, CheckCircle, Navigation, Search, Loader2 } from 'lucide-react';
+import { Save, Bell, Zap, CheckCircle, Navigation, Loader2, MapPin, Search, Thermometer } from 'lucide-react';
+import { GeoapifyGeocoderAutocomplete, GeoapifyContext } from '@geoapify/react-geocoder-autocomplete';
+import '@geoapify/geocoder-autocomplete/styles/minimal-dark.css';
 
 const Settings = () => {
     const [prefs, setPrefs] = useState({
         homeCity: "",
+        homeLat: null,
+        homeLon: null,
         useGPS: false,
         morningAlert: true,
         eveningAlert: true,
         alertOnSuddenChange: true,
+        tempUnit: "celsius",
+        windUnit: "kmh",
+        pressureUnit: "hpa",
     });
 
-    // Photon State - Updated interface to include location hierarchy
-    const [query, setQuery] = useState("");
-    const [suggestions, setSuggestions] = useState<any[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
-    
     const [saving, setSaving] = useState(false);
-    const [saveSuccess, setSaveSuccess] = useState("");
+    const [saveSuccess, setSaveSuccess] = useState('');
 
     // 1. Fetch Preferences on Mount
     useEffect(() => {
@@ -29,7 +31,6 @@ const Settings = () => {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setPrefs(response.data);
-                setQuery(response.data.homeCity); 
             } catch (err) {
                 console.error("Fetch error:", err);
             }
@@ -37,29 +38,22 @@ const Settings = () => {
         fetchPreferences();
     }, []);
 
-    // 2. Photon Autocomplete Logic (Debounced)
-    useEffect(() => {
-        const timer = setTimeout(async () => {
-            if (query.length < 3 || prefs.useGPS) {
-                setSuggestions([]);
-                return;
-            }
+    // 2. Geoapifiy selection handler
 
-            setIsSearching(true);
-            try {
-                const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`);
-                const data = await res.json();
-                setSuggestions(data.features || []);
-            } catch (err) {
-                console.error("Geocoding error:", err);
-            } finally {
-                setIsSearching(false);
-            }
-        }, 400);
+    const onPlaceSelect = (value: any) => {
+        if (!value || !value.properties) return;
+        const p = value.properties;
+        const cityName = p.city || p.name;
 
-        return () => clearTimeout(timer);
-    }, [query, prefs.useGPS]);
-
+        setPrefs(prev => ({
+            ...prev,
+            homeCity: cityName,
+            homeLat: p.lat,
+            homeLon: p.lon,
+            useGPS: false
+        }));
+    }
+    
     // 3. Handle GPS Toggle
     const handleGPSFetch = () => {
         if (!navigator.geolocation) return alert("Geolocation not supported");
@@ -73,12 +67,13 @@ const Settings = () => {
                 const city = p.city || p.district || p.name || "Unknown Location";
                 
                 setPrefs(prev => ({ ...prev, homeCity: city, useGPS: true }));
-                setQuery(city);
             } catch (err) {
                 console.error("Reverse geocode failed", err);
             }
         });
     };
+
+    
 
     const handleSave = async () => {
         setSaving(true);
@@ -89,7 +84,7 @@ const Settings = () => {
             });
             setSaveSuccess('Preferences saved successfully!');
             setTimeout(() => setSaveSuccess(""), 3000);
-        } catch (err) {
+        } catch {
             setSaveSuccess('Failed to save settings.');
         } finally {
             setSaving(false);
@@ -130,55 +125,37 @@ const Settings = () => {
 
                 {/* --- LOCATION SEARCH SECTION --- */}
                 <div className={`relative z-30 bg-white/5 border border-white/10 p-8 rounded-[2.5rem] transition-all duration-500 shadow-2xl backdrop-blur-sm ${prefs.useGPS ? 'opacity-30 grayscale pointer-events-none scale-[0.98]' : 'opacity-100'}`}>
+                    
                     <h3 className="text-blue-400 font-bold mb-6 flex items-center gap-3 tracking-tight">
-                        <MapPin size={20} /> Home City
+                        <MapPin size={20} /> Select Home City
                     </h3>
-                    <div className="relative group">
-                        <input 
-                            type="text" 
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white/10 transition-all text-white placeholder:text-slate-600"
-                            placeholder="Search city, province, or country..."
+
+                    {/* Wrapper for the Autocomplete + Icon */}
+                    <div className="geoapify-custom-wrapper relative group">
+                        {/* Absolute Search Icon - Positioned specifically for the input field */}
+                        <Search 
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors z-20 pointer-events-none" 
+                            size={20} 
                         />
-                        <Search className="absolute left-4 top-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={20} />
-                        {isSearching && <Loader2 className="absolute right-4 top-4 animate-spin text-blue-500" size={20} />}
                         
-                        {/* --- SUGGESTIONS DROPDOWN --- */}
-                        {suggestions.length > 0 && (
-                            <ul className="absolute w-full mt-3 bg-[#0A0C10] border border-white/10 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden ring-1 ring-white/5">
-                                {suggestions.map((s, idx) => {
-                                    const p = s.properties;
-                                    const mainName = p.city || p.district || p.locality || p.name;
-                                    const subLabelParts = [p.state, p.country].filter(val => val && val !== mainName);
-                                    const subLabel = subLabelParts.join(", ");
-
-                                    return (
-                                        <li 
-                                            key={idx}
-                                            onClick={() => {
-                                                setQuery(mainName);
-                                                setPrefs(prev => ({ ...prev, homeCity: mainName }));
-                                                setSuggestions([]);
-                                            }}
-                                            className="p-5 hover:bg-blue-600/10 cursor-pointer flex flex-col border-b border-white/5 last:border-none group transition-all"
-                                        >
-                                            <span className="text-white font-semibold group-hover:text-blue-400 transition-colors">
-                                                {mainName}
-                                            </span>
-                                            {subLabel && (
-                                                <span className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mt-1">
-                                                    {subLabel}
-                                                </span>
-                                            )}
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
+                        <GeoapifyContext apiKey={import.meta.env.VITE_GEOAPIFY_API_KEY}>
+                            <GeoapifyGeocoderAutocomplete
+                                placeholder="Search city (e.g. Cainta, Rizal)"
+                                type="city"
+                                lang="en"
+                                limit={5}
+                                value={prefs.homeCity}
+                                placeSelect={onPlaceSelect}
+                            />
+                        </GeoapifyContext>
                     </div>
-                </div>
 
+                    {/* Current Selection Label */}
+                    <p className="mt-4 text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                        <span className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></span>
+                        Saved: <span className="text-blue-400 font-bold">{prefs.homeCity || "Not set"}</span>
+                    </p>
+                </div>
                 {/* --- NOTIFICATIONS SECTION --- */}
                 <div className="relative z-10 bg-white/5 border border-white/10 p-8 rounded-[2.5rem] shadow-2xl backdrop-blur-sm">
                     <h3 className="text-blue-400 font-bold mb-8 flex items-center gap-3 text-white tracking-tight">
@@ -207,6 +184,84 @@ const Settings = () => {
                         ))}
                     </div>
                 </div>
+                {/* --- UNIT PREFERENCES SECTION --- */}
+                    <div className="bg-white/5 border border-white/10 p-8 rounded-[2.5rem] shadow-2xl backdrop-blur-sm">
+                        <h3 className="text-blue-400 font-bold mb-8 flex items-center gap-3 text-white tracking-tight">
+                            <Thermometer size={20} /> Display Units
+                        </h3>
+
+                        <div className="space-y-6">
+                            {/* Temperature Unit */}
+                            <div className="flex items-center justify-between p-2 bg-white/[0.03] border border-white/5 rounded-2xl">
+                                <span className="ml-3 text-sm font-medium text-slate-300">Temperature</span>
+                                <div className="flex bg-[#05070A] p-1 rounded-xl border border-white/5">
+                                    {[
+                                        { label: '°C', value: 'celsius' },
+                                        { label: '°F', value: 'fahrenheit' }
+                                    ].map((unit) => (
+                                        <button
+                                            key={unit.value}
+                                            onClick={() => setPrefs({ ...prefs, tempUnit: unit.value })}
+                                            className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${
+                                                prefs.tempUnit === unit.value 
+                                                ? 'bg-blue-600 text-white shadow-lg' 
+                                                : 'text-slate-500 hover:text-slate-300'
+                                            }`}
+                                        >
+                                            {unit.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Wind Speed Unit */}
+                            <div className="flex items-center justify-between p-2 bg-white/[0.03] border border-white/5 rounded-2xl">
+                                <span className="ml-3 text-sm font-medium text-slate-300">Wind Speed</span>
+                                <div className="flex bg-[#05070A] p-1 rounded-xl border border-white/5">
+                                    {[
+                                        { label: 'km/h', value: 'kmh' },
+                                        { label: 'mph', value: 'mph' },
+                                        { label: 'm/s', value: 'ms' }
+                                    ].map((unit) => (
+                                        <button
+                                            key={unit.value}
+                                            onClick={() => setPrefs({ ...prefs, windUnit: unit.value })}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                                                prefs.windUnit === unit.value 
+                                                ? 'bg-blue-600 text-white shadow-lg' 
+                                                : 'text-slate-500 hover:text-slate-300'
+                                            }`}
+                                        >
+                                            {unit.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Pressure Unit */}
+                            <div className="flex items-center justify-between p-2 bg-white/[0.03] border border-white/5 rounded-2xl">
+                                <span className="ml-3 text-sm font-medium text-slate-300">Pressure</span>
+                                <div className="flex bg-[#05070A] p-1 rounded-xl border border-white/5">
+                                    {[
+                                        { label: 'hPa', value: 'hpa' },
+                                        { label: 'inHg', value: 'inhg' }
+                                    ].map((unit) => (
+                                        <button
+                                            key={unit.value}
+                                            onClick={() => setPrefs({ ...prefs, pressureUnit: unit.value })}
+                                            className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${
+                                                prefs.pressureUnit === unit.value 
+                                                ? 'bg-blue-600 text-white shadow-lg' 
+                                                : 'text-slate-500 hover:text-slate-300'
+                                            }`}
+                                        >
+                                            {unit.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                 {/* --- SAVE BUTTON --- */}
                 <button 

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Cloud, Thermometer, Droplets, Wind, Search, MapPin, Zap, CloudSun, Loader2 } from 'lucide-react';
+import { GeoapifyGeocoderAutocomplete, GeoapifyContext } from '@geoapify/react-geocoder-autocomplete';
+import '@geoapify/geocoder-autocomplete/styles/minimal-dark.css';
 import API from '../api/axiosConfig';
 
 interface WeatherData {
@@ -45,12 +47,8 @@ const WeatherView = ({ advice, adviceLoading, homeCity }: WeatherViewProps) => {
         fetchWeatherData();
     }, [currentCity]);
 
-    const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (searchCity.trim() === "") return;
-        navigate(`/dashboard/home?city=${encodeURIComponent(searchCity)}`);
-        setSearchCity(""); // Clear search after navigation
-    };
+
+
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -66,16 +64,31 @@ const WeatherView = ({ advice, adviceLoading, homeCity }: WeatherViewProps) => {
                     </div>
                 </div>
 
-                <form onSubmit={handleSearch} className="relative w-full max-w-sm group">
-                    <input 
-                        type="text" 
-                        placeholder="Search city..." 
-                        className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white/10 transition-all text-white placeholder:text-slate-500 shadow-2xl"
-                        value={searchCity}
-                        onChange={(e) => setSearchCity(e.target.value)}
-                    />
-                    <Search className="absolute left-4 top-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={20} />
-                </form>
+            {/* --- SEARCH COMPONENT --- */}
+            <div className="relative w-full max-w-sm group z-50">
+                {/* Absolute Search Icon - Positioned over the Geoapify input */}
+                <Search 
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors z-20 pointer-events-none" 
+                    size={20} 
+                />
+                
+                <div className="geoapify-custom-wrapper">
+                    <GeoapifyContext apiKey={import.meta.env.VITE_GEOAPIFY_API_KEY}>
+                        <GeoapifyGeocoderAutocomplete
+                            placeholder="Search city..."
+                            type="city"
+                            lang="en"
+                            limit={5}
+                            placeSelect={(value) => {
+                                if (value) {
+                                    const cityName = value.properties.city || value.properties.name;
+                                    navigate(`/dashboard/home?city=${encodeURIComponent(cityName)}`);
+                                }
+                            }}
+                        />
+                    </GeoapifyContext>
+                </div>
+            </div>
             </header>
 
             {/* --- MAIN CONTENT GRID --- */}
