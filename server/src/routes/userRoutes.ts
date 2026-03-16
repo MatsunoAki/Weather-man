@@ -16,7 +16,7 @@ router.get('/preferences', authMiddleware, async (req: AuthenticatedRequest, res
     }
 });
 
-// UPDATE user preferences - Change .get to .put here!
+// UPDATE user preferences
 router.put('/update-preferences', authMiddleware, async (req: AuthenticatedRequest, res) => {
     try {
         const { homeCity, useGPS, morningAlert, eveningAlert, alertOnSuddenChange } = req.body;
